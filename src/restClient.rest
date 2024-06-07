@@ -1,0 +1,81 @@
+GET http://localhost:3000/api/
+
+###
+GET http://localhost:3000/api/sample/101?city=123
+
+###
+
+POST http://localhost:3000/api/sample/101
+Content-Type: application/json
+
+{
+    "id": "123",
+    "name": "John",
+    "city": "New York"
+}
+
+###
+@port=3000
+
+###
+GET http://localhost:{{port}}/api/jsonDB/users
+
+###
+POST http://localhost:{{port}}/api/jsonDB/users
+Content-Type: application/json
+
+{
+    "username": "dssg",
+    "email": "1sdf@xxx.com",
+    "password": "123456",
+    "role": "user",
+    "isAdmin": false
+
+}
+###
+
+POST http://localhost:{{port}}/api/users/register
+Content-Type: application/json
+
+{
+    "email": "11@m.com",
+    "username": "Johasfasfn1",
+    "password": "ewrhersh",
+    "roles": ["admin"]
+}
+
+###
+POST http://localhost:{{port}}/api/users/login
+Content-Type: application/json
+
+{
+    "email": "11@m.com",
+    "password": "ewrhersh"
+}
+
+
+###
+GET http://localhost:{{port}}/api/users/profile
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiIxMUBtLmNvbSIsInVzZXJuYW1lIjoiSm9oYXNmYXNmbjEiLCJyb2xlcyI6WyJhZG1pbiJdLCJpYXQiOjE3MTUzMzAxMzYsImV4cCI6MTcxNTMzMzczNn0.mp7vGt84UQ6VLNOK0TEGEKD9RAc1LusXsr0rNiTkJbA
+
+
+###
+GET http://localhost:{{port}}/api/users/admin
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiIxMUBtLmNvbSIsInVzZXJuYW1lIjoiSm9oYXNmYXNmbjEiLCJyb2xlcyI6WyJhZG1pbiJdLCJpYXQiOjE3MTUzMzAxMzYsImV4cCI6MTcxNTMzMzczNn0.mp7vGt84UQ6VLNOK0TEGEKD9RAc1LusXsr0rNiTkJbA
+
+### create users DB tables
+GET http://localhost:{{port}}/api/users/create
+
+###
+POST http://localhost:{{port}}/api/users/register
+Content-Type: application/json
+
+{
+    "email": "katrinargr@gmail.com",
+    "name": "sdgews",
+    "password": "123456",
+    "roles": "account,it,manager"
+
+}
+###\
+
