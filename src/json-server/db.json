@@ -1,0 +1,56 @@
+{
+  "todos": [
+    {
+      "id": 1,
+      "title": "Learn React",
+      "completed": false
+    },
+    {
+      "id": 2,
+      "title": "Learn Redux",
+      "completed": false
+    },
+    {
+      "id": 3,
+      "title": "Learn React Router",
+      "completed": false
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "John Doe",
+      "email": "john@gmail.com",
+      "password": "123456",
+      "hashedPassword": "",
+      "role": "admin",
+      "isAdmin": true
+    },
+    {
+      "id": 2,
+      "username": "Cook",
+      "email": "cook@gmail.com",
+      "password": "123456",
+      "hashedPassword": "",
+      "role": "admin",
+      "isAdmin": true
+    },
+    {
+      "username": "user3",
+      "email": "user3@mail.com",
+      "password": "123",
+      "hashedPassword": "",
+      "role": "user",
+      "id": 3
+    },
+    {
+      "username": "John",
+      "email": "1@xxx.com",
+      "password": "123456",
+      "role": "user",
+      "isAdmin": false,
+      "apiId": "jsonDB",
+      "id": 5
+    }
+  ]
+}
