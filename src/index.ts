@@ -4,7 +4,10 @@ import type { Request, Response, NextFunction } from "express";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+import {createServer} from 'node:http';
+const httpServer = createServer(app);
+
+httpServer.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
 });
 
@@ -14,6 +17,25 @@ app.use(
 		origin: "*",
 	}),
 );
+
+import { Server as IoServer} from 'socket.io';
+const io = new IoServer(httpServer, {
+	cors: {
+		origin: "*",
+	},
+});
+
+io.on('connection', (socket) => {
+	console.log('a user connected', socket.id);
+	socket.on('disconnect', () => {
+		console.log('user disconnected', socket.id);
+	});
+	socket.on('chat message', (msg) => {
+		console.log(`message: ${msg}`);
+		socket.broadcast.emit('chat message', msg);
+	});
+});
+
  
 import addTime from "./middleware/time";
 app.use(addTime);
