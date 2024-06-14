@@ -90,7 +90,7 @@ router.post(
 		}
 
 		const hashed_password = await bcrypt.hash(password, 10);
-		
+
 		const rand6digit = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
 
 		const letter: ILetter = {
@@ -114,8 +114,8 @@ router.post(
 		console.log("user", user);
 
 		const rs = await tblUsers.insert([user]);
-		if ( rs ) {
-			res.status(201).json({ message: "User created", users: {id: rs.insertedId, ... user}});
+		if (rs) {
+			res.status(201).json({ message: "User created", users: { id: rs.insertedId, ...user } });
 		} else {
 			console.log("rs", rs)
 			res.status(500).json({ message: "User create failed" });

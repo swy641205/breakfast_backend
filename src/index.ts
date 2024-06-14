@@ -4,7 +4,7 @@ import type { Request, Response, NextFunction } from "express";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-import {createServer} from 'node:http';
+import { createServer } from 'node:http';
 const httpServer = createServer(app);
 
 httpServer.listen(PORT, () => {
@@ -18,25 +18,6 @@ app.use(
 	}),
 );
 
-import { Server as IoServer} from 'socket.io';
-const io = new IoServer(httpServer, {
-	cors: {
-		origin: "*",
-	},
-});
-
-io.on('connection', (socket) => {
-	console.log('a user connected', socket.id);
-	socket.on('disconnect', () => {
-		console.log('user disconnected', socket.id);
-	});
-	socket.on('chat message', (msg) => {
-		console.log(`message: ${msg}`);
-		socket.broadcast.emit('chat message', msg);
-	});
-});
-
- 
 import addTime from "./middleware/time";
 app.use(addTime);
 
@@ -52,9 +33,6 @@ app.use(express.urlencoded({ extended: true }));
 
 import { router as sampleRouter } from "./routers/sample";
 app.use("/api/sample", sampleRouter);
-
-import { router as jsonDBRouter } from "./routers/jsonDB";
-app.use("/api/jsonDB", jsonDBRouter);
 
 import { router as usersRouter } from "./routers/users";
 app.use("/api/users", usersRouter);
