@@ -72,7 +72,11 @@ router.post('/verification', async (req: Request, res: Response) => {
 	const { email } = req.body;
 
 	if (!email) {
-		return res.status(400).json({ message: "email is required" });
+		return res.json({ message: "email is required", code: 400 });
+	}
+	const dbUser = await tblUsers.getByEmail(email);
+	if (dbUser.status === 'active') {
+		return res.json({ message: `User email ${email} already exists`, code: 400 });
 	}
 
 	const rand6digit = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
@@ -81,7 +85,7 @@ router.post('/verification', async (req: Request, res: Response) => {
 	const letter: ILetter = {
 		from: process.env.MAIL_SENDER as string,
 		to: email,
-		subject: `Breakfast Order System Activation`,
+		subject: 'Breakfast Order System Activation',
 		html: `<h1>Activation code: ${rand6digit}</h1>`
 	}
 	const info = await gmail.send(letter);
@@ -179,16 +183,16 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 const verifyToken = (token, secret) => {
-    return new Promise((resolve, reject) => {
-        jwt.verify(token, secret, (err, payload) => {
-            if (err) {
-                reject({ message: "Invalid token", code: 401 });
-            } else {
-                const u = payload as { email: string }; // 假設 payload 中包含 email
-                resolve(u.email);
-            }
-        });
-    });
+	return new Promise((resolve, reject) => {
+		jwt.verify(token, secret, (err, payload) => {
+			if (err) {
+				reject({ message: "Invalid token", code: 401 });
+			} else {
+				const u = payload as { email: string }; // 假設 payload 中包含 email
+				resolve(u.email);
+			}
+		});
+	});
 };
 
 router.get('/profile', async (req: Request, res: Response) => {
@@ -198,7 +202,7 @@ router.get('/profile', async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Please login first", code: 401 });
 	}
 	token = token.split(' ')[1];
-    const email = await verifyToken(token, secret);
+	const email = await verifyToken(token, secret);
 	const user = await tblUsers.getByEmail(email);
 	console.log('user', user);
 	const data = {
@@ -206,7 +210,7 @@ router.get('/profile', async (req: Request, res: Response) => {
 		username: user.username,
 		phone: user.phone,
 	}
-	res.json({ data: data, code: 200});
+	res.json({ data: data, code: 200 });
 });
 
 router.put('/profile', async (req: Request, res: Response) => {
@@ -216,12 +220,12 @@ router.put('/profile', async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Please login first", code: 401 });
 	}
 	token = token.split(' ')[1];
-    const email = await verifyToken(token, secret);
+	const email = await verifyToken(token, secret);
 	if (!email) {
 		return res.status(401).json({ message: "db error", code: 401 });
 	}
 	console.log('req.body', req.body);
-	
+
 	const hashed_password = await bcrypt.hash(req.body.password, 10);
 	const user = {
 		email: email,
@@ -231,9 +235,9 @@ router.put('/profile', async (req: Request, res: Response) => {
 	};
 	const r = await tblUsers.upsert(user)
 	if (r) {
-		res.json({message: 'done!', code: 200});
+		res.json({ message: 'done!', code: 200 });
 	} else {
-		res.status(500).json({message: 'db error', code: 500});
+		res.status(500).json({ message: 'db error', code: 500 });
 	}
 
 });
