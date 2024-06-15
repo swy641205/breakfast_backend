@@ -207,9 +207,37 @@ router.get('/profile', async (req: Request, res: Response) => {
 		phone: user.phone,
 	}
 	res.json({ data: data, code: 200});
+});
 
+router.put('/profile', async (req: Request, res: Response) => {
+	let token = req.headers.authorization;
+
+	if (!token) {
+		return res.status(401).json({ message: "Please login first", code: 401 });
+	}
+	token = token.split(' ')[1];
+    const email = await verifyToken(token, secret);
+	if (!email) {
+		return res.status(401).json({ message: "db error", code: 401 });
+	}
+	console.log('req.body', req.body);
+	
+	const hashed_password = await bcrypt.hash(req.body.password, 10);
+	const user = {
+		email: email,
+		username: req.body.username,
+		hashed_password: hashed_password,
+		phone: req.body.phone
+	};
+	const r = await tblUsers.upsert(user)
+	if (r) {
+		res.json({message: 'done!', code: 200});
+	} else {
+		res.status(500).json({message: 'db error', code: 500});
+	}
 
 });
+
 
 
 
