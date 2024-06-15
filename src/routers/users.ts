@@ -158,10 +158,10 @@ router.post('/login', async (req: Request, res: Response) => {
 	}
 
 	const user = await tblUsers.getByEmail(email);
-
 	if (!user) {
 		return res.status(400).json({ message: `User email ${email} not exists`, code: 400 });
 	}
+	const rolesList = user.roles.split(',');
 
 	const isMatched = await bcrypt.compare(password, user.hashed_password);
 	if (!isMatched) {
@@ -179,7 +179,7 @@ router.post('/login', async (req: Request, res: Response) => {
 		{ expiresIn: "1h", }
 	);
 
-	res.status(200).json({ token: token, code: 200 });
+	res.status(200).json({ token: token, code: 200, roles: rolesList });
 });
 
 const verifyToken = (token, secret) => {
