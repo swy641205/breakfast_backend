@@ -90,7 +90,7 @@ router.post('/verification', async (req: Request, res: Response) => {
 		email: email,
 		activation_secret: rand6digit,
 		status: 'in-active'
-	
+
 	}
 	const rs = await tblUsers.upsert(user);
 	if (rs) {
@@ -156,12 +156,12 @@ router.post('/login', async (req: Request, res: Response) => {
 	const user = await tblUsers.getByEmail(email);
 
 	if (!user) {
-		return res.status(400).json({ message: `User email ${email} not exists`, code: 400});
+		return res.status(400).json({ message: `User email ${email} not exists`, code: 400 });
 	}
 
 	const isMatched = await bcrypt.compare(password, user.hashed_password);
 	if (!isMatched) {
-		return res.status(400).json({ message: "密碼錯誤", code: 400});
+		return res.status(400).json({ message: "密碼錯誤", code: 400 });
 	}
 
 	const token = jwt.sign(
@@ -175,35 +175,40 @@ router.post('/login', async (req: Request, res: Response) => {
 		{ expiresIn: "1h", }
 	);
 
-	res.status(200).json({token: token, code: 200});
+	res.status(200).json({ token: token, code: 200 });
 });
 
+const verifyToken = (token, secret) => {
+    return new Promise((resolve, reject) => {
+        jwt.verify(token, secret, (err, payload) => {
+            if (err) {
+                reject({ message: "Invalid token", code: 401 });
+            } else {
+                const u = payload as { email: string }; // 假設 payload 中包含 email
+                resolve(u.email);
+            }
+        });
+    });
+};
 
 router.get('/profile', async (req: Request, res: Response) => {
-	const token = req.headers.authorization;
+	let token = req.headers.authorization;
 
 	if (!token) {
-		return res.status(401).json({ message: "Please login first" });
+		return res.status(401).json({ message: "Please login first", code: 401 });
 	}
+	token = token.split(' ')[1];
+    const email = await verifyToken(token, secret);
+	const user = await tblUsers.getByEmail(email);
+	console.log('user', user);
+	const data = {
+		email: user.email,
+		username: user.username,
+		phone: user.phone,
+	}
+	res.json({ data: data, code: 200});
 
-	jwt.verify(token, secret, (err, payload) => {
-		if (err) {
-			return res.status(401).json({ message: "Invalid token" });
-		}
 
-		console.log('user:', payload);
-
-		const user = payload as JwtPayload;
-		const iat = (user.iat as number) * 1000;
-		const exp = (user.exp as number) * 1000;
-
-		res.json({
-			message: 'jwt authorization success',
-			user,
-			iat: nsUtil.taipeiTimeString(new Date(iat)),
-			exp: nsUtil.taipeiTimeString(new Date(exp)),
-		});
-	});
 });
 
 
