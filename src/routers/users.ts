@@ -155,9 +155,13 @@ router.post('/login', async (req: Request, res: Response) => {
 
 	const user = await tblUsers.getByEmail(email);
 
+	if (!user) {
+		return res.status(400).json({ message: `User email ${email} not exists`, code: 400});
+	}
+
 	const isMatched = await bcrypt.compare(password, user.hashed_password);
 	if (!isMatched) {
-		return res.status(400).json({ message: "Invalid credentials" });
+		return res.status(400).json({ message: "密碼錯誤", code: 400});
 	}
 
 	const token = jwt.sign(
@@ -171,7 +175,7 @@ router.post('/login', async (req: Request, res: Response) => {
 		{ expiresIn: "1h", }
 	);
 
-	res.status(200).json(token);
+	res.status(200).json({token: token, code: 200});
 });
 
 
