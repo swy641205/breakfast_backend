@@ -15,6 +15,7 @@ export interface IUserNoId extends IUserRegister {
     hashed_password: string;
     activation_secret: string;
     status: string;
+    phone: string;
 }
 
 export interface IUser extends IUserNoId {
@@ -28,13 +29,12 @@ const tblUsers = {
             const sql = `
           CREATE TABLE IF NOT EXISTS ${tblUsers.tblName} (
             id int(11) NOT NULL AUTO_INCREMENT COMMENT '代號',
-            name varchar(30) NOT NULL COMMENT '姓名',
             email varchar(50) NOT NULL COMMENT 'email',
-            status varchar(10) DEFAULT NULL COMMENT '狀態 active/in-active',
-            password varchar(40) DEFAULT NULL COMMENT '明碼',
-            hashed_password varchar(256) DEFAULT NULL COMMENT '密碼',
+            hashedPassword varchar(256) DEFAULT NULL COMMENT '密碼',
             roles varchar(256) DEFAULT NULL COMMENT '角色 member, admin, manager, accounting, it, hr',
-            activation_secret varchar(12) DEFAULT NULL COMMENT '啟用碼',
+            activationSecret varchar(12) DEFAULT NULL COMMENT '啟用碼',
+            status varchar(10) DEFAULT NULL COMMENT '狀態 active/in-active',
+            phone varchar(20) DEFAULT NULL COMMENT '電話',
             PRIMARY KEY (id)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
         `;
@@ -66,23 +66,70 @@ const tblUsers = {
             return null;
         }
     },
-    insert: async (oData: IUserNoId[]) => {
+    insert: async (data) => {
+        try {
+            const keys = Object.keys(data);
+            const values = Object.values(data);
+            
+            const insertFields = keys.join(', ');
+            const insertPlaceholders = keys.map(() => '?').join(', ');
+            const updateFields = keys.map(key => `${key} = VALUES(${key})`).join(', ');
+    
+            const sql = `INSERT INTO ${tblUsers.tblName} (${insertFields}) VALUES (${insertPlaceholders})`;
+            
+            console.log('Generated SQL:', sql);
+            console.log('Values:', values);
+
+            const [rs] = await myConn.query<ResultSetHeader>(sql, [...values]);
+            console.log('insert sql 傳回結果:', rs);
+            console.log({ count: rs.affectedRows, insertedId: rs.insertId });
+            return { count: rs.affectedRows, insertedId: rs.insertId }
+        } catch (err) {
+            console.log(data)
+            console.log(`insert ${tblUsers.tblName} error: ${err.message}`);
+            return null;
+        }
+    },
+    
+    upsert: async (data) => {
+        try {
+            const keys = Object.keys(data);
+            const values = Object.values(data);
+            
+            const insertFields = keys.join(', ');
+            const insertPlaceholders = keys.map(() => '?').join(', ');
+            const updateFields = keys.map(key => `${key} = VALUES(${key})`).join(', ');
+    
+            const sql = `INSERT INTO ${tblUsers.tblName} (${insertFields}) VALUES (${insertPlaceholders})
+                         ON DUPLICATE KEY UPDATE ${updateFields}`;
+    
+            const [rs] = await myConn.query<ResultSetHeader>(sql, values);
+            console.log({ count: rs.affectedRows, insertedId: rs.insertId });
+            return { count: rs.affectedRows, insertedId: rs.insertId }
+        } catch (err) {
+            console.log(`upsert ${tblUsers.tblName} error: ${err.message}`);
+            return null;
+        }
+    },
+    
+    
+    insert_old: async (oData: IUserNoId[]) => {
         try {
             const dataset: string[][] = [];
             oData.forEach((el, idx) => {
                 dataset.push([
-                    el.name,
                     el.email,
-                    el.status,
-                    el.password,
                     el.hashed_password,
+                    el.username,
                     el.roles,
                     el.activation_secret,
+                    el.status,
+                    el.phone
                 ]);
             });
             console.log(dataset);
-
-            const sql = `INSERT INTO ${tblUsers.tblName} (name, email, status, password, hashed_password, roles, activation_secret) VALUES ?;`;
+            // () 內的是欄位名稱
+            const sql = `INSERT INTO ${tblUsers.tblName} (email, hashedPassword, userName, roles, activationSecret, status) VALUES ?`;
             const [rs] = await myConn.query<ResultSetHeader>(sql, [dataset]);
             console.log('insert sql 傳回結果:', rs);
             console.log({ count: rs.affectedRows, insertedId: rs.insertId });
@@ -103,6 +150,18 @@ const tblUsers = {
             return null;
         }
     },
+    getActivationSecretByEmail: async (email: string) => {
+        try {
+            const sql = `SELECT activationSecret FROM ${tblUsers.tblName} WHERE email = ?`;
+            const [rs] = await myConn.query<RowDataPacket[]>(sql, [email]);
+            const user = rs[0];
+            return user?.activationSecret;
+        } catch (err) {
+            console.log(`getActivationSecretByEmail ${email} from ${tblUsers.tblName} error: ${err}`);
+            return null;
+        }
+    },
+
     getAll: async () => {
         try {
             const sql = `SELECT * FROM ${tblUsers.tblName}`;

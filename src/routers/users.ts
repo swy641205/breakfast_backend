@@ -68,62 +68,84 @@ router.get('/clear', async (req: Request, res: Response) => {
 	}
 });
 
-router.post(
-	"/register",
-	async (
-		req: Request<
-			ParamsDictionary,
-			{ message: string; users: IUser },
-			IUserRegister
-		>,
-		res: Response,
-	) => {
-		const { email, name, password, roles } = req.body;
+router.post('/verification', async (req: Request, res: Response) => {
+	const { email } = req.body;
 
-		if (!email || !name || !password || !roles) {
-			return res.status(400).json({ message: "email, name password, roles are required." });
-		}
-
-		const dbUser = await tblUsers.getByEmail(email);
-		if (dbUser) {
-			return res.status(400).json({ message: `User email ${email} already exists` });
-		}
-
-		const hashed_password = await bcrypt.hash(password, 10);
-
-		const rand6digit = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-
-		const letter: ILetter = {
-			from: process.env.MAIL_SENDER as string,
-			to: email,
-			subject: `${name} Activation`,
-			html: `<h1>Activation code: ${rand6digit}</h1>`
-		}
-		const info = await gmail.send(letter);
-		console.log('activation mail has send!', info);
-
-		const user: IUserNoId = {
-			email,
-			name,
-			password,
-			hashed_password,
-			roles,
-			activation_secret: rand6digit,
-			status: 'in-active',
-		};
-		console.log("user", user);
-
-		const rs = await tblUsers.insert([user]);
-		if (rs) {
-			res.status(201).json({ message: "User created", users: { id: rs.insertedId, ...user } });
-		} else {
-			console.log("rs", rs)
-			res.status(500).json({ message: "User create failed" });
-		}
-		console.log("users", users);
+	if (!email) {
+		return res.status(400).json({ message: "email is required" });
 	}
-);
 
+	const rand6digit = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+	// const rand6digit = '012345';
+
+	const letter: ILetter = {
+		from: process.env.MAIL_SENDER as string,
+		to: email,
+		subject: `Breakfast Order System Activation`,
+		html: `<h1>Activation code: ${rand6digit}</h1>`
+	}
+	const info = await gmail.send(letter);
+	console.log('activation mail has send!', info);
+	const user = {
+		email: email,
+		activation_secret: rand6digit,
+		status: 'in-active'
+	
+	}
+	const rs = await tblUsers.upsert(user);
+	if (rs) {
+		res.status(200).json({ message: "mail sended!" });
+	} else {
+		console.log("rs", rs)
+		res.status(500).json({ message: "mail store failed" });
+	}
+});
+
+interface IRequestMemberBody {
+	email: string;
+	activation_secret: string;
+	password: string;
+	confirm_password: string;
+	username: string;
+	phone: string;
+}
+
+router.post("/register", async (req: Request, res: Response,) => {
+	const { email, activation_secret, password, confirm_password, username, phone }: IRequestMemberBody = req.body;
+
+	if (!email || !activation_secret || !username || !password || !phone) {
+		return res.status(400).json({ message: "fields are not correct." });
+	}
+
+	const dbUser = await tblUsers.getByEmail(email);
+	if (dbUser.status === 'active') {
+		return res.status(400).json({ message: `User email ${email} already exists` });
+	}
+
+	if (dbUser.activation_secret !== activation_secret) {
+		return res.status(400).json({ message: "Activation secret is not correct", secret_incorrect: true });
+	}
+
+	const hashed_password = await bcrypt.hash(password, 10);
+	// properites is unordered
+	const user = {
+		email,
+		username,
+		hashed_password,
+		phone: phone,
+		status: 'active',
+		roles: 'member',
+	};
+	console.log("user", user);
+
+	const rs = await tblUsers.upsert(user);
+	if (rs) {
+		res.status(201).json({ message: "User created", users: { id: rs.insertedId, ...user } });
+	} else {
+		console.log("rs", rs)
+		res.status(500).json({ message: "User create failed" });
+	}
+});
 
 router.post('/login', async (req: Request, res: Response) => {
 	const { email, password } = req.body;
@@ -133,9 +155,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
 	const user = await tblUsers.getByEmail(email);
 
-
-	const isMatched = await bcrypt.compare(password, user.hashedPassword);
-
+	const isMatched = await bcrypt.compare(password, user.hashed_password);
 	if (!isMatched) {
 		return res.status(400).json({ message: "Invalid credentials" });
 	}
