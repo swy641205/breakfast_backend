@@ -37,6 +37,9 @@ app.use("/api/sample", sampleRouter);
 import { router as usersRouter } from "./routers/users";
 app.use("/api/users", usersRouter);
 
+import { router as menuRouter } from "./routers/menu";
+app.use("/api/menu", menuRouter);
+
 app.get("/api", (req: Request, res: Response) => {
 	res.send("root api");
 });
