@@ -14,7 +14,7 @@ import nsUtil from "../nsUtil/nsUtil";
 
 export const router = Router();
 
-type Roles = 'admin' | 'guser' | 'it' | 'member' | 'manager' | 'account';
+type Roles = 'admin' | 'member' | 'owner';
 
 interface ReqBodyUser {
 	email: string;
@@ -34,7 +34,7 @@ interface SignInUser {
 }
 
 const users: User[] = [];
-const secret = process.env.JWT_SECRET || "mysecret";
+const secret = process.env.JWT_SECRET;
 
 import tblUsers from "../mysql/users";
 import type { IUserLogin, IUserRegister, IUserNoId, IUser } from "../mysql/users";
@@ -176,7 +176,7 @@ router.post('/login', async (req: Request, res: Response) => {
 			roles: user.roles
 		},
 		secret,
-		{ expiresIn: "1h", }
+		{ expiresIn: "999d", }
 	);
 
 	res.status(200).json({ token: token, code: 200, roles: rolesList });
@@ -188,8 +188,7 @@ const verifyToken = (token, secret) => {
 			if (err) {
 				reject({ message: "Invalid token", code: 401 });
 			} else {
-				const u = payload as { email: string }; // 假設 payload 中包含 email
-				resolve(u.email);
+				resolve(payload);
 			}
 		});
 	});
@@ -202,7 +201,7 @@ router.get('/profile', async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Please login first", code: 401 });
 	}
 	token = token.split(' ')[1];
-	const email = await verifyToken(token, secret);
+	const { email } = await verifyToken(token, secret);
 	const user = await tblUsers.getByEmail(email);
 	console.log('user', user);
 	const data = {
@@ -220,7 +219,7 @@ router.put('/profile', async (req: Request, res: Response) => {
 		return res.status(401).json({ message: "Please login first", code: 401 });
 	}
 	token = token.split(' ')[1];
-	const email = await verifyToken(token, secret);
+	const { email } = await verifyToken(token, secret);
 	if (!email) {
 		return res.status(401).json({ message: "db error", code: 401 });
 	}
@@ -242,45 +241,4 @@ router.put('/profile', async (req: Request, res: Response) => {
 
 });
 
-
-
-
-router.get('/getSchema', async (req: Request, res: Response) => {
-	// const rs = await tblUsers.getSchema();
-	// if (rs === null) {
-	// 	res.status(500).json({ error: `DB table ${tblUsers.tblName} schema get failed` });
-	// } else {
-	// 	res.status(200).json(rs);
-	// }
-});
-
-const jwtVerify = (req: Request, res: Response, next: NextFunction) => {
-	const token = req.headers.authorization;
-
-	if (!token) {
-		return res.status(401).json({ message: "Please login first" });
-	}
-
-	jwt.verify(token, secret, (err, payload) => {
-		if (err) {
-			return res.status(403).json({ message: "Invalid token" });
-		}
-
-		if (!payload.signInUser) {
-			return res.status(403).json({ message: "Invalid payload" });
-		}
-
-		req.signInUser = payload.signInUser;
-		next();
-	});
-}
-
-router.get('/admin', jwtVerify, async (req: Request, res: Response) => {
-	if (!req.signInUser.roles.includes('admin')) {
-		return res.status(403).json({ message: "Permission denied" });
-	}
-	res.status(200).json({
-		message: 'protected api executed',
-		signInUser: req.signInUser,
-	});
-});
+export default verifyToken;
