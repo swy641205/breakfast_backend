@@ -111,35 +111,6 @@ const tblUsers = {
             return null;
         }
     },
-    
-    
-    insert_old: async (oData: IUserNoId[]) => {
-        try {
-            const dataset: string[][] = [];
-            oData.forEach((el, idx) => {
-                dataset.push([
-                    el.email,
-                    el.hashed_password,
-                    el.username,
-                    el.roles,
-                    el.activation_secret,
-                    el.status,
-                    el.phone
-                ]);
-            });
-            console.log(dataset);
-            // () 內的是欄位名稱
-            const sql = `INSERT INTO ${tblUsers.tblName} (email, hashedPassword, userName, roles, activationSecret, status) VALUES ?`;
-            const [rs] = await myConn.query<ResultSetHeader>(sql, [dataset]);
-            console.log('insert sql 傳回結果:', rs);
-            console.log({ count: rs.affectedRows, insertedId: rs.insertId });
-            return { count: rs.affectedRows, insertedId: rs.insertId }
-        } catch (err) {
-            console.log(`insert into ${tblUsers.tblName} error: ${err.message}`)
-            return null;
-        }
-    },
-
     getByEmail: async (email: string) => {
         try {
             const sql = `SELECT * FROM ${tblUsers.tblName} WHERE email = ?`;
