@@ -1,9 +1,7 @@
 import { Router } from "express";
 import type {
     Request,
-    Response,
-    NextFunction,
-    ParamsDictionary
+    Response
 } from "express-serve-static-core";
 
 export const router = Router();
@@ -12,7 +10,6 @@ const secret = process.env.JWT_SECRET;
 import verifyToken from "../routers/users";
 
 import tbl from "../mysql/general";
-import { exitCode } from "process";
 const tblMenu = tbl('menu');
 
 router.get("/:id", async (req: Request, res: Response) => {
@@ -31,7 +28,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     const id = req.params.id;
     const menu = await tblMenu.get('id', id);
     if (menu) {
-        res.json({ data: menu, code: 201 });
+        res.json({ data: menu, code: 200 });
     } else {
         res.json({ error: "menu not found", code: 404 });
     }
