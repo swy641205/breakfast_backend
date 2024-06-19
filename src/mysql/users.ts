@@ -168,21 +168,6 @@ const tblUsers = {
             return null;
         }
     },
-    
-    fakeData: async () => {
-        try {
-            const sql = `
-                INSERT INTO ${tblUsers.tblName} (name, email, status, password, hashed_password, roles) VALUES
-                    ('John', '1@mail.com', 'active', '1234', NULL, 'admin'),
-                    ('Mary', '2@mail.com', 'active', '1234', NULL, 'member'),
-                    ('Tom', '3@mail.com', 'active', '1234', NULL, 'member')
-                `;
-            const [rs, fields] = await myConn.query(sql);
-            return rs;
-        } catch (err) {
-            return null;
-        }
-    },
 };
 
 export default tblUsers;
