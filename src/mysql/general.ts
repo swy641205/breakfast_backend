@@ -1,6 +1,7 @@
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import myConn from "./myConn";
 
+// TODO return proper status
 const tbl = (tblName: string) => {
     return {
         drop: async () => {
