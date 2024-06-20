@@ -149,8 +149,14 @@ router.post('/login', async (req: Request, res: Response) => {
 		secret,
 		{ expiresIn: "999d", }
 	);
+	const info = {
+		token: token,
+		email: user.email,
+		username: user.username,
+		roles: rolesList,
+	}
 
-	res.status(200).json({ token: token, code: 200, roles: rolesList });
+	res.status(200).json({ data: info, code: 200});
 });
 
 const verifyToken = (token, secret) => {
