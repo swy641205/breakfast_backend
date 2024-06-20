@@ -115,6 +115,7 @@ const tblUsers = {
         try {
             const sql = `SELECT * FROM ${tblUsers.tblName} WHERE email = ?`;
             const [rs] = await myConn.query<RowDataPacket[]>(sql, [email]);
+            // console.log('getByEmail', rs);
             return rs[0];
         } catch (err) {
             console.log(`getByEmail ${email} from ${tblUsers.tblName} error: ${err}`)

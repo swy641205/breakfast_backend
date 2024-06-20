@@ -1,8 +1,3 @@
-import bcrypt from "bcryptjs";
-import jwt, { type JwtPayload } from "jsonwebtoken";
-
-import gmail, { type ILetter } from "../senderMail/gmail";
-
 import { Router } from "express";
 import type {
 	Request,
@@ -10,6 +5,9 @@ import type {
 	NextFunction,
 	ParamsDictionary,
 } from "express-serve-static-core";
+import bcrypt from "bcryptjs";
+import jwt, { type JwtPayload } from "jsonwebtoken";
+import gmail, { type ILetter } from "../senderMail/gmail";
 
 export const router = Router();
 
@@ -36,8 +34,6 @@ const users: User[] = [];
 const secret = process.env.JWT_SECRET;
 
 import tblUsers from "../mysql/users";
-import type { IUserLogin, IUserRegister, IUserNoId, IUser } from "../mysql/users";
-
 
 router.post('/verification', async (req: Request, res: Response) => {
 	const { email } = req.body;
@@ -46,7 +42,7 @@ router.post('/verification', async (req: Request, res: Response) => {
 		return res.json({ message: "email is required", code: 400 });
 	}
 	const dbUser = await tblUsers.getByEmail(email);
-	if (dbUser.status === 'active') {
+	if (dbUser && dbUser.status === 'active') {
 		return res.json({ message: `User email ${email} already exists`, code: 400 });
 	}
 
@@ -69,10 +65,10 @@ router.post('/verification', async (req: Request, res: Response) => {
 	}
 	const rs = await tblUsers.upsert(user);
 	if (rs) {
-		res.status(200).json({ message: "mail sended!" });
+		res.status(200).json({ message: "mail sended!", code: 200});
 	} else {
 		console.log("rs", rs)
-		res.status(500).json({ message: "mail store failed" });
+		res.status(500).json({ message: "mail store failed", code: 500 });
 	}
 });
 
