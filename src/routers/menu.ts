@@ -50,7 +50,7 @@ router.get("/", async (req: Request, res: Response) => {
     const id = req.params.id;
     const menuAll = await tblMenu.getAll();
     if (menuAll) {
-        res.json({ data: menuAll, code: 201 });
+        res.json({ data: menuAll, code: 200 });
     } else {
         res.json({ error: "menu not found", code: 404 });
     }
