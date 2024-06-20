@@ -39,34 +39,6 @@ const secret = process.env.JWT_SECRET;
 import tblUsers from "../mysql/users";
 import type { IUserLogin, IUserRegister, IUserNoId, IUser } from "../mysql/users";
 
-router.get('/create', async (req: Request, res: Response) => {
-	const rs = await tblUsers.create();
-	console.log(rs);
-	if (rs === null) {
-		res.status(500).json({ error: `DB table ${tblUsers.tblName} create failed` });
-	} else {
-		res.status(200).json(rs);
-	}
-});
-
-router.get('/drop', async (req: Request, res: Response) => {
-	const rs = await tblUsers.drop();
-	if (rs === null) {
-		res.status(500).json({ error: `DB table ${tblUsers.tblName} drop failed` });
-	} else {
-		res.status(200).json(rs);
-	}
-});
-
-router.get('/clear', async (req: Request, res: Response) => {
-	const rs = await tblUsers.clear();
-	console.log(rs);
-	if (rs === null) {
-		res.status(500).json({ error: `DB table ${tblUsers.tblName} clear failed` });
-	} else {
-		res.status(200).json(rs);
-	}
-});
 
 router.post('/verification', async (req: Request, res: Response) => {
 	const { email } = req.body;
