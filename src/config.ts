@@ -1,3 +1,5 @@
+import exp from "constants";
+
 export const JWT_SECRET = process.env.JWT_SECRET as string;
 
 if (!JWT_SECRET) {
@@ -5,6 +7,6 @@ if (!JWT_SECRET) {
     process.exit(1);
 }
 
-export const ROLES = ['admin', 'owner', 'member'];
-export const MANAGER = ['admin', 'owner'];
 export const ADMIN = ['admin'];
+export const MANAGER = [...ADMIN, 'owner'];
+export const ROLES = [...MANAGER, 'member'];
