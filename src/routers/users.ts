@@ -10,7 +10,6 @@ import type {
 	NextFunction,
 	ParamsDictionary,
 } from "express-serve-static-core";
-import nsUtil from "../nsUtil/nsUtil";
 
 export const router = Router();
 
