@@ -31,14 +31,17 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-import { router as sampleRouter } from "./routers/sample";
-app.use("/api/sample", sampleRouter);
-
 import { router as usersRouter } from "./routers/users";
 app.use("/api/users", usersRouter);
 
 import { router as menuRouter } from "./routers/menu";
 app.use("/api/menu", menuRouter);
+
+import { router as orderRouter } from "./routers/orders";
+app.use("/api/orders", orderRouter);
+
+import { router as adminRouter } from "./routers/admin";
+app.use("/api/admin", adminRouter);
 
 app.get("/api", (req: Request, res: Response) => {
 	res.send("root api");
