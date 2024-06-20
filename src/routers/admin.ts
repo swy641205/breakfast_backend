@@ -4,9 +4,10 @@ import type {
     Response
 } from "express-serve-static-core";
 import { authenticate as Auth } from "../middleware/auth";
-import { ADMIN } from "../config";
-import tbl from "../mysql/general";
 import { sendConflict, sendError, sendInternalError, sendNotFound, sendResponse } from "../nsUtil/responseHelper";
+import { ADMIN } from "../config";
+import { filterByDateRange } from "../nsUtil/nsUtil";
+import tbl from "../mysql/general";
 
 export const router = Router();
 
@@ -68,21 +69,6 @@ router.get("/orders/", Auth(ADMIN), async (req: Request, res: Response) => {
     const filteredOrders = filterByDateRange(orders, startDate, endDate);
     return sendResponse(res, filteredOrders);
 });
-
-function filterByDateRange(orders: Order[], startDate?: string, endDate?: string): Order[] {
-    if (!startDate || !endDate) {
-        return orders;
-    }
-
-    const filteredOrders = orders.filter(order => {
-        // order_time is in format "YYYY-MM-DD HH:MM:SS"
-        // convert to "YYYY-MM-DD" UTC TIME
-        const orderDate = new Date(order.order_time).toISOString().split('T')[0];
-        return orderDate >= startDate && orderDate <= endDate;
-    });
-
-    return filteredOrders;
-}
 
 router.get("/users/", Auth(ADMIN), async (req: Request, res: Response) => {
     const email = req.query.email as string;

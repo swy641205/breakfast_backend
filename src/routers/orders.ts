@@ -8,6 +8,7 @@ import { authenticate as Auth } from "../middleware/auth";
 import verifyToken from "./users";
 import tbl from "../mysql/general";
 import { MANAGER, ROLES } from "../config";
+import { filterByDateRange } from "../nsUtil/nsUtil";
 
 export const router = Router();
 
@@ -27,21 +28,6 @@ router.get("/", Auth(ROLES), async (req: Request, res: Response) => {
     const filteredOrders = filterByDateRange(selfOrder, startDate, endDate);
     return sendResponse(res, filteredOrders);
 });
-
-function filterByDateRange(orders, startDate?: string, endDate?: string) {
-    if (!startDate || !endDate) {
-        return orders
-    }
-
-    const filteredOrders = orders.filter(order => {
-        // order_time is in format "YYYY-MM-DD HH:MM:SS"
-        // convert to "YYYY-MM-DD" UTC TIME
-        const orderDate = new Date(order.order_time).toISOString().split('T')[0];
-        return orderDate >= startDate && orderDate <= endDate;
-    });
-
-    return filteredOrders;
-}
 
 router.get("/:id", async (req: Request, res: Response) => {
     let token = req.headers.authorization;
