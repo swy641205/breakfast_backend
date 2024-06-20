@@ -3,15 +3,45 @@ import type {
     Request,
     Response
 } from "express-serve-static-core";
+import { sendNotFound, sendResponse } from "../nsUtil/responseHelper";
+import { authenticate as Auth } from "../middleware/auth";
+import verifyToken from "./users";
+import tbl from "../mysql/general";
+import { ROLES } from "../config";
 
 export const router = Router();
 
 const secret = process.env.JWT_SECRET;
 
-import verifyToken from "./users";
-import tbl from "../mysql/general";
-
 const tblOrders = tbl('orders');
+
+router.get("/", Auth(ROLES), async (req: Request, res: Response) => {
+    const startDate = req.query.startDate as string;
+    const endDate = req.query.endDate as string;
+    const orders = await tblOrders.getAll();
+
+    if (!orders) {
+        return sendNotFound(res);
+    }
+    const selfOrder = orders.filter(order => order.user_id === req.user.id);
+    const filteredOrders = filterByDateRange(selfOrder, startDate, endDate);
+    return sendResponse(res, filteredOrders);
+});
+
+function filterByDateRange(orders, startDate?: string, endDate?: string) {
+    if (!startDate || !endDate) {
+        return orders
+    }
+
+    const filteredOrders = orders.filter(order => {
+        // order_time is in format "YYYY-MM-DD HH:MM:SS"
+        // convert to "YYYY-MM-DD" UTC TIME
+        const orderDate = new Date(order.order_time).toISOString().split('T')[0];
+        return orderDate >= startDate && orderDate <= endDate;
+    });
+
+    return filteredOrders;
+}
 
 router.get("/:id", async (req: Request, res: Response) => {
     let token = req.headers.authorization;
@@ -20,7 +50,7 @@ router.get("/:id", async (req: Request, res: Response) => {
         return res.status(401).json({ message: "Please login first", code: 401 });
     }
     token = token.split(' ')[1];
-    const user = { roles: null, id: null};
+    const user = { roles: null, id: null };
     try {
         const { roles, id } = await verifyToken(token, secret);
         user.roles = roles;
@@ -38,38 +68,6 @@ router.get("/:id", async (req: Request, res: Response) => {
         res.json({ data: order, code: 200 });
     } else if (user.id === order.user_id) {
         res.json({ data: order, code: 200 });
-    } else {
-        res.json({ error: "permission deny", code: 403 });
-    }
-});
-
-router.get("/", async (req: Request, res: Response) => {
-    let token = req.headers.authorization;
-    const self = req.query.self;
-
-    if (!token) {
-        return res.status(401).json({ message: "Please login first", code: 401 });
-    }
-    token = token.split(' ')[1];
-    const user = { roles: null, id: null};
-    try {
-        const { roles, id } = await verifyToken(token, secret);
-        user.roles = roles;
-        user.id = id;
-    } catch (err) {
-        return res.json(err);
-    }
-
-    const id = req.params.id;
-    const orders = await tblOrders.getAll();
-    if (!orders) {
-        res.json({ error: "orders not found", code: 404 });
-    }
-    if (self) {
-        const selfOrders = orders.filter(order => order.user_id === user.id);
-        res.json({ data: selfOrders, code: 200 });
-    } else if (user.roles.includes('admin' || 'owner')) {
-        res.json({ data: orders, code: 200 });
     } else {
         res.json({ error: "permission deny", code: 403 });
     }
