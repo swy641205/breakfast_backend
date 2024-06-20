@@ -7,7 +7,7 @@ import { sendNotFound, sendResponse } from "../nsUtil/responseHelper";
 import { authenticate as Auth } from "../middleware/auth";
 import verifyToken from "./users";
 import tbl from "../mysql/general";
-import { ROLES } from "../config";
+import { MANAGER, ROLES } from "../config";
 
 export const router = Router();
 
@@ -109,25 +109,16 @@ router.post("/", Auth(ROLES), async (req: Request, res: Response) => {
     }
 });
 
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", Auth(MANAGER), async (req: Request, res: Response) => {
     const id = req.params.id;
-    let token = req.headers.authorization;
+    const { order_items, total_price, order_time, pickup_time, method, note, status } = req.body;
 
-    if (!token) {
-        return res.status(401).json({ message: "Please login first", code: 401 });
-    }
-    token = token.split(' ')[1];
-    await verifyToken(token, secret);
-
-
-    const { order_items, total_price, order_time, pickup_time, method, note, status, user } = req.body;
-
-    if (!order_items || !total_price || !order_time || !method || !pickup_time || !status || !user) {
-        return res.json({ error: "Required fields are missing", code: 400 });
+    if (!order_items || !total_price || !order_time || !method || !pickup_time || !status) {
+        return res.json({ message: "Required fields are missing", code: 400 });
     }
 
-    const orderId = await tblOrders.get('id', id)
-    if (!orderId) {
+    const order = await tblOrders.get('id', id)
+    if (!order) {
         return res.json({ error: `${id} not exists`, code: 400 });
     }
 
@@ -143,6 +134,7 @@ router.put("/:id", async (req: Request, res: Response) => {
             method,
             note,
             status,
+            user_id: order.user_id,
         });
 
         if (!orderResult) {
