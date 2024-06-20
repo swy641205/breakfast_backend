@@ -1,5 +1,3 @@
-import exp from "constants";
-
 export const JWT_SECRET = process.env.JWT_SECRET as string;
 
 if (!JWT_SECRET) {

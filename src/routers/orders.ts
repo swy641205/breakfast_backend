@@ -74,19 +74,11 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // TODO price should count in backend
-router.post("/", async (req: Request, res: Response) => {
-    let token = req.headers.authorization;
+router.post("/", Auth(ROLES), async (req: Request, res: Response) => {
+    const { order_items, total_price, order_time, pickup_time, method, note } = req.body;
+    const userId = req.user.id;
 
-    if (!token) {
-        return res.status(401).json({ message: "Please login first", code: 401 });
-    }
-    token = token.split(' ')[1];
-    await verifyToken(token, secret);
-
-
-    const { order_items, total_price, order_time, pickup_time, method, note, user } = req.body;
-
-    if (!order_items || !total_price || !order_time || !method || !pickup_time || !user) {
+    if (!order_items || !total_price || !order_time || !method || !pickup_time) {
         return res.json({ error: "Required fields are missing", code: 400 });
     }
 
@@ -101,6 +93,7 @@ router.post("/", async (req: Request, res: Response) => {
             method,
             note,
             status: 'pending',
+            user_id: userId,
         });
 
         if (!orderResult || !orderResult.insertedId) {
