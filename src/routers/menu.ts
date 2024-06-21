@@ -67,10 +67,10 @@ router.post("/", async (req: Request, res: Response) => {
         return res.status(401).json({ message: "permission deny", code: 403 });
     }
 
-    const { name, description, price } = req.body;
+    const { name, description, price, tag } = req.body;
 
-    if (!name || !description || !price) {
-        return res.json({ error: "name, description, price are required", code: 400 });
+    if (!name || !description || !price || !tag) {
+        return res.json({ error: "name, description, price, tag are required", code: 400 });
     }
 
     const menuName = await tblMenu.get('name', name)
@@ -82,6 +82,7 @@ router.post("/", async (req: Request, res: Response) => {
         name,
         description,
         price,
+        tag
     });
     if (rs) {
         res.json({ id: rs.insertedId, code: 201 });
@@ -102,10 +103,10 @@ router.put("/:id", async (req: Request, res: Response) => {
         return res.status(401).json({ message: "permission deny", code: 403 });
     }
 
-    const { name, description, price } = req.body;
+    const { name, description, price, tag } = req.body;
 
-    if (!name || !description || !price) {
-        return res.json({ error: "name, description, price are required", code: 400 });
+    if (!name || !description || !price || !tag) {
+        return res.json({ error: "name, description, price, tag are required", code: 400 });
     }
     const id = req.params.id;
     const menuName = await tblMenu.get('id', id)
@@ -118,6 +119,7 @@ router.put("/:id", async (req: Request, res: Response) => {
         name,
         description,
         price,
+        tag
     });
     if (rs) {
         res.json({ id: rs.upsertedId, code: 201 });

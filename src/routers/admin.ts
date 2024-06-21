@@ -100,16 +100,16 @@ router.get("/users/:id", Auth(ADMIN), async (req: Request, res: Response) => {
 
 
 router.post("/menu/", Auth(ADMIN), async (req: Request, res: Response) => {
-    const { name, price, description } = req.body;
-    if (!name || !price || !description) {
-        return sendError(res, "name, price, description are required", 400);
+    const { name, price, description, tag } = req.body;
+    if (!name || !price || !description || !tag) {
+        return sendError(res, "name, price, description,tag are required", 400);
     }
     const query = await tblMenu.get('name', name)
     if (query) {
         return sendConflict(res, `${name} already exists`);
     }
 
-    const obj = await tblMenu.insert({ name, price, description });
+    const obj = await tblMenu.insert({ name, price, description, tag });
 
     if (!obj) {
         return sendInternalError(res);
@@ -119,17 +119,17 @@ router.post("/menu/", Auth(ADMIN), async (req: Request, res: Response) => {
 
 router.put("/menu/:id", Auth(ADMIN), async (req: Request, res: Response) => {
     const id = req.params.id;
-    const { name, price, description } = req.body;
-    if (!name || !price || !description) {
-        return sendError(res, "name, price, description are required", 400);
+    const { name, price, description, tag } = req.body;
+    if (!name || !price || !description || !tag) {
+        return sendError(res, "name, price, description, tag are required", 400);
     }
 
-    const query = await tblMenu.get('name', name)
-    if (query) {
-        return sendConflict(res, `${name} already exists`);
+    const query = await tblMenu.get('id', id)
+    if (!query) {
+        return sendNotFound(res);
     }
 
-    const obj = await tblMenu.upsert({ name, price, description });
+    const obj = await tblMenu.upsert({id, name, price, description, tag });
 
     if (!obj) {
         return sendInternalError(res);
