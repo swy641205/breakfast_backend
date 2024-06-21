@@ -106,6 +106,7 @@ router.post("/register", async (req: Request, res: Response,) => {
 		phone: phone,
 		status: 'active',
 		roles: 'member',
+		register_time: new Date(),
 	};
 	console.log("user", user);
 
